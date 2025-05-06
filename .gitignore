@@ -3,3 +3,7 @@ work/
 output/
 submit/
 submit.zip
+cache/
+__pycache__/
+data/
+rough_work/

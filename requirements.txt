@@ -4,3 +4,20 @@ pandas
 nltk
 tqdm
 unidecode
+
+# for loading datasets
+datasets
+
+# for running the notebook
+jupyterlab
+ipykernel
+ipywidgets # for interactive widgets
+
+# for best practices
+black
+isort
+flake8
+ruff
+
+# for data processing and visualization
+pyarrow

@@ -1,0 +1,42 @@
+{
+    // Editor settings
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.fixAll": "always",
+        "source.organizeImports": "always"
+    },
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true,
+    "files.exclude": {
+        "**/__pycache__": true
+    },
+    // Python settings
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.fixAll": "always",
+            "source.organizeImports": "always"
+        }
+    },
+    // Black formatter settings
+    "black-formatter.args": [
+        "--line-length",
+        "88"
+    ],
+    // isort settings
+    "isort.args": [
+        "--profile",
+        "black"
+    ],
+    // Pylint settings
+    "ruff.enable": true,
+    "ruff.lint.select": [
+        "F401",
+        "F841",
+        "I001"
+    ],
+    // env file
+    "python.envFile": "${workspaceFolder}/.env",
+    "python.terminal.activateEnvironment": true
+}
