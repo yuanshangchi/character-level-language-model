@@ -21,3 +21,6 @@ ruff
 
 # for data processing and visualization
 pyarrow
+
+# for model training
+transformers
