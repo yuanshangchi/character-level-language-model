@@ -3,6 +3,7 @@ import os
 import string
 import random
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+from src.pre_trained.nanoGPT_infer import generate_characters
 
 
 class MyModel:
@@ -41,9 +42,10 @@ class MyModel:
         preds = []
         all_chars = string.ascii_letters
         for inp in data:
-            # this model just predicts a random character each time
-            top_guesses = [random.choice(all_chars) for _ in range(3)]
-            preds.append(''.join(top_guesses))
+            # # this model just predicts a random character each time
+            # top_guesses = [random.choice(all_chars) for _ in range(3)]
+            preds.append(''.join(generate_characters(inp, num_characters=3)))
+
         return preds
 
     def save(self, work_dir):
