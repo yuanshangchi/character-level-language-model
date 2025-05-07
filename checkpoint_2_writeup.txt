@@ -1,0 +1,14 @@
+For checkpoint 2 we are using a lot of opensource pre generated code.
+
+For the dataset we had to pivot away from OSCAR and CommonCrawl to Colossal Clean Crawled 
+Corpus due to technical difficulties we had with the other two datasets. The other two datasets
+were much more rigid and there was huge difficulties pulling small amounts to data to train and test
+while we develop the model. 
+
+For the model we were able to pull an opensource model that had a unicode tokenizer and transformer
+already defined. Currently we are using a model with pretrained weights and vocabulary based on Shakespear.
+This does not produce good results but proves that we can create and run this model and actually use it within
+test enviroment. 
+
+Future work:
+Take our multilanguage dataset, use that to generate a new vocabulary and train our model against this test data.
