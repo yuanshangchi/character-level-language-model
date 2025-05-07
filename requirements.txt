@@ -24,3 +24,12 @@ pyarrow
 
 # for model training
 transformers
+
+# for nanoGPT (pip install torch numpy transformers datasets tiktoken wandb tqdm)
+torch
+numpy
+transformers
+datasets
+tiktoken
+wandb
+tqdm
