@@ -3,7 +3,7 @@ import os
 import string
 import random
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
-from src.pre_trained.nanoGPT_infer import generate_characters
+from nanoGPT_infer import generate_characters
 
 
 class MyModel:
