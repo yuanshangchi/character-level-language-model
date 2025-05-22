@@ -3,7 +3,6 @@ import time
 import torch
 from torch.utils.data import IterableDataset, DataLoader
 from datasets import load_dataset
-from transformers import AutoTokenizer
 from nanoGPT_model import GPT, GPTConfig  # assumes you have model.py with GPT classes defined
 import traceback
 
@@ -49,45 +48,67 @@ class MultilingualStreamProportionalSampler(IterableDataset):
             except StopIteration:
                 continue  # Handle streaming dataset disconnections gracefully
 
-# 3. Tokenizer setup
-tokenizer = AutoTokenizer.from_pretrained("gpt2")
-tokenizer.pad_token = tokenizer.eos_token
+
+# 3. Tokenizer setup (Unicode Encoding)
+class UnicodeTokenizer:
+    def __init__(self):
+        self.pad_token = "<pad>"
+        self.eos_token = "<eos>"
+        self.pad_token_id = 0
+        self.eos_token_id = 1
+
+    def encode(self, text, max_length=None, padding=False, truncation=False):
+        # Convert each character to its Unicode code point
+        tokens = [ord(char) for char in text]
+        if truncation and max_length:
+            tokens = tokens[:max_length]
+        if padding and max_length:
+            tokens += [self.pad_token_id] * (max_length - len(tokens))
+        tokens.append(self.eos_token_id)  # Add EOS token
+        return tokens
+
+    def decode(self, token_ids):
+        # Convert Unicode code points back to characters
+        return "".join(chr(token) for token in token_ids if token > 1)  # Ignore pad and eos tokens
+
+tokenizer = UnicodeTokenizer()
+
+# Update the model configuration for Unicode encoding
+vocab_size = 1114112  # Maximum Unicode code point (0x10FFFF) + 2 for pad and eos tokens
+block_size = 128  # Set the block size explicitly
+config = GPTConfig(vocab_size=vocab_size, block_size=block_size)
 
 # 4. Sampler setup
-languages = ["en", "es", "fr", "de", "zh"]
-lang_probs = [0.5, 0.2, 0.1, 0.1, 0.1]
+languages = ["en", "es", "hi"]
+lang_probs = [0.5, 0.3, 0.2]
 
 stream_sampler = MultilingualStreamProportionalSampler(languages, lang_probs)
 
+
 # 5. Collate function
 def collate(batch):
-    # Debugging: Print the structure of the batch
-    # print("Batch structure:", batch)
+    # Tokenize the text field in the batch using Unicode encoding
+    tokenized_batch = [
+        tokenizer.encode(item["text"], truncation=True, padding=True, max_length=block_size - 2) + [tokenizer.eos_token_id]
+        for item in batch
+    ]
 
-    # Tokenize the text field in the batch
-    tokenized_batch = [tokenizer(item["text"], truncation=True, padding="max_length", max_length=1024) for item in batch]
-    # Debugging: Print the tokenized batch
-    print("Tokenized batch:", tokenized_batch)
-    # Check if tokenized_batch is empty
-    if not tokenized_batch:
-        print("Tokenized batch is empty")
-        return None, None
     # Stack the input_ids into a tensor
-    input_ids = torch.stack([torch.tensor(item["input_ids"]) for item in tokenized_batch])
+    input_ids = torch.tensor(tokenized_batch, dtype=torch.long)
     targets = input_ids.clone()
     return input_ids, targets
 
-train_loader = DataLoader(stream_sampler, batch_size=4, collate_fn=collate)
+train_loader = DataLoader(stream_sampler, batch_size=2, collate_fn=collate)
 
 # 6. Instantiate model and optimizer
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
-config = GPTConfig()
 model = GPT(config).to(device)
 
 optimizer = model.configure_optimizers(
     weight_decay=0.1, learning_rate=3e-4, betas=(0.9, 0.95), device_type=device
 )
+
 
 # 7. Training loop
 model.train()
@@ -98,7 +119,7 @@ for step, (input_ids, targets) in enumerate(train_loader):
 
         # Forward pass
         outputs = model(input_ids, targets)
-        print(f"Outputs structure at step {step}: {type(outputs)}, {outputs}")  # Debugging
+        # print(f"Outputs structure at step {step}: {type(outputs)}, {outputs}")  # Debugging
 
         # Handle outputs based on their structure
         if isinstance(outputs, torch.Tensor):
@@ -122,11 +143,13 @@ for step, (input_ids, targets) in enumerate(train_loader):
         # Stop after 1000 steps
         if step == 1000:
             break
+        torch.cuda.empty_cache()
     except Exception as e:
         print(f"Error during training at step {step}: {e}")
         traceback.print_exc()
         continue
 
+
 # Save the trained model
-torch.save(model.state_dict(), "gpt_multilingual.pt")
-print("Model saved to gpt_multilingual.pt")
+torch.save(model, "gpt_multilingual_unicode.pt")
+print("Model saved to gpt_multilingual_unicode.pt")
