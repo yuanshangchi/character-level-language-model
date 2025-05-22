@@ -1,9 +1,9 @@
 import torch
 
-from src.pre_trained.nanoGPT_model import GPT, GPTConfig
+from nanoGPT_model import GPT, GPTConfig
 
 # Load checkpoint
-checkpoint_path = "out-shakespeare-char/ckpt.pt"
+checkpoint_path = "src/ckpt.pt"
 checkpoint = torch.load(checkpoint_path, map_location="cpu")
 
 # Build the model

@@ -9,3 +9,4 @@ __pycache__/
 data/
 rough_work/
 local_gpt2/pytorch_model.bin
+env/
