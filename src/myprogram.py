@@ -3,13 +3,18 @@ import os
 import string
 import random
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+import torch
 from nanoGPT_infer import generate_characters
+import nanoGPT_infer
 
 
 class MyModel:
     """
     This is a starter model to get you started. Feel free to modify this file.
     """
+
+    def __init__(self, model=None):
+        self.model = model
 
     @classmethod
     def load_training_data(cls):
@@ -41,11 +46,17 @@ class MyModel:
         # your code here
         preds = []
         all_chars = string.ascii_letters
-        for inp in data:
-            # # this model just predicts a random character each time
-            # top_guesses = [random.choice(all_chars) for _ in range(3)]
-            preds.append(''.join(generate_characters(inp, num_characters=3)))
+        # for inp in data:
+        #     # # this model just predicts a random character each time
+        #     # top_guesses = [random.choice(all_chars) for _ in range(3)]
+        #     preds.append(''.join(generate_characters(inp, num_characters=3)))
 
+        # return preds
+
+        for inp in data:
+        # generate_characters needs to accept the model
+            prediction = generate_characters(inp, num_characters=3)
+            preds.append(''.join(prediction))
         return preds
 
     def save(self, work_dir):
@@ -54,13 +65,18 @@ class MyModel:
         with open(os.path.join(work_dir, 'model.checkpoint'), 'wt') as f:
             f.write('dummy save')
 
+    # @classmethod
+    # def load(cls, work_dir):
+    #     # your code here
+    #     # this particular model has nothing to load, but for demonstration purposes we will load a blank file
+    #     with open(os.path.join(work_dir, 'model.checkpoint')) as f:
+    #         dummy_save = f.read()
+    #     return MyModel()
+
     @classmethod
     def load(cls, work_dir):
-        # your code here
-        # this particular model has nothing to load, but for demonstration purposes we will load a blank file
-        with open(os.path.join(work_dir, 'model.checkpoint')) as f:
-            dummy_save = f.read()
-        return MyModel()
+        return MyModel(model=nanoGPT_infer.model)
+
 
 
 if __name__ == '__main__':
