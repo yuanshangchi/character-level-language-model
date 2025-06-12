@@ -29,7 +29,7 @@ class MyModel:
 
     @classmethod
     def write_pred(cls, preds, fname):
-        with open(fname, 'wt') as f:
+        with open(fname, 'wt', encoding='utf-8') as f:
             for p in preds:
                 f.write('{}\n'.format(p))
 
@@ -58,8 +58,8 @@ class MyModel:
     def load(cls, work_dir):
         # your code here
         # this particular model has nothing to load, but for demonstration purposes we will load a blank file
-        with open(os.path.join(work_dir, 'model.checkpoint')) as f:
-            dummy_save = f.read()
+        # with open(os.path.join(work_dir, 'model.checkpoint')) as f:
+        #     dummy_save = f.read()
         return MyModel()
 
 
