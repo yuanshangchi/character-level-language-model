@@ -33,3 +33,5 @@ datasets
 tiktoken
 wandb
 tqdm
+tensorflow
+tensorflow_text
