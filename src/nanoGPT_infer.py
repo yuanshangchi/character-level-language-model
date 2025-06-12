@@ -44,7 +44,7 @@ def build_printable_vocab():
 char_vocab = build_printable_vocab()
 vocab_size = len(char_vocab)
 
-print(f"Built printable Unicode vocabulary with {vocab_size} characters.")
+# print(f"Built printable Unicode vocabulary with {vocab_size} characters.")
 
 class PrintableUnicodeTokenizer:
     def __init__(self, vocab, pad_token="<pad>", eos_token="<eos>", unk_token="<unk>"):
@@ -109,7 +109,7 @@ def generate_characters(prompt, num_characters=100, temperature=0.8, top_k=40):
 
     # Decode the generated sequence using UnicodeTokenizer
     output_text = tokenizer.decode(input_ids[0].tolist())
-    print(f"Generated sequence: {output_text}")
+    # print(f"Generated sequence: {output_text}")
     return output_text[len(prompt) :]  # Return only the newly generated characters
 
 
