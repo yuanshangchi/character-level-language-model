@@ -22,28 +22,57 @@ device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is
 model = model.to(device)
 model.eval()  # Set the model to evaluation mode
 # Initialize the tokenizer (from practice.py)
-class UnicodeTokenizer:
-    def __init__(self):
-        self.pad_token = "<pad>"
-        self.eos_token = "<eos>"
-        self.pad_token_id = 0
-        self.eos_token_id = 1
+import unicodedata
+
+def is_printable(char):
+    if char in ['\n', '\t', ' ']:
+        return True
+    category = unicodedata.category(char)
+    return category[0] in ['L', 'N', 'P', 'S', 'Z', 'M']
+
+def build_printable_vocab():
+    # Add special tokens
+    printable_chars = ['<pad>', '<eos>', '<unk>']
+
+    # Optional: Restrict to Basic Multilingual Plane (0x0000–0xFFFF)
+    for i in range(0x110000):  # You can switch to 0x110000 for full Unicode
+        char = chr(i)
+        if is_printable(char):
+            printable_chars.append(char)
+    return printable_chars
+
+char_vocab = build_printable_vocab()
+vocab_size = len(char_vocab)
+
+print(f"Built printable Unicode vocabulary with {vocab_size} characters.")
+
+class PrintableUnicodeTokenizer:
+    def __init__(self, vocab, pad_token="<pad>", eos_token="<eos>", unk_token="<unk>"):
+        self.vocab = vocab
+        self.stoi = {ch: i for i, ch in enumerate(vocab)}
+        self.itos = {i: ch for i, ch in enumerate(vocab)}
+        self.pad_token_id = self.stoi[pad_token]
+        self.eos_token_id = self.stoi[eos_token]
+        self.unk_token_id = self.stoi[unk_token]
 
     def encode(self, text, max_length=None, padding=False, truncation=False):
-        tokens = [ord(char) for char in text]
+        tokens = [self.stoi.get(ch, self.unk_token_id) for ch in text]
+
         if truncation and max_length:
             tokens = tokens[:max_length - 1]
             tokens.append(self.eos_token_id)
         elif max_length and padding:
             tokens.append(self.eos_token_id)
+
         if padding and max_length:
             tokens += [self.pad_token_id] * (max_length - len(tokens))
+
         return tokens
 
     def decode(self, token_ids):
-        return "".join(chr(token) for token in token_ids if token > 1)
+        return ''.join(self.itos.get(i, '') for i in token_ids if i != self.pad_token_id)
 
-tokenizer = UnicodeTokenizer()
+tokenizer = PrintableUnicodeTokenizer(char_vocab)
 
 
 
@@ -73,15 +102,13 @@ def generate_characters(prompt, num_characters=100, temperature=0.8, top_k=40):
 
         # Convert logits to probabilities and sample the next token
         probs = torch.nn.functional.softmax(logits, dim=-1)
-        print(f"Probabilities for next token: {probs}")
         next_id = torch.multinomial(probs, num_samples=1)
 
         # Append the sampled token to the input
         input_ids = torch.cat((input_ids, next_id), dim=1)
 
     # Decode the generated sequence using UnicodeTokenizer
-    print(f"Generated input IDs: {input_ids}")
-    output_text = tokenizer.decode([82, 79, 77, 69, 79, 58,  1,])
+    output_text = tokenizer.decode(input_ids[0].tolist())
     print(f"Generated sequence: {output_text}")
     return output_text[len(prompt) :]  # Return only the newly generated characters
 
